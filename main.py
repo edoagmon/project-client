@@ -1,14 +1,13 @@
-
 import requests
 import datetime
 import base64
 import json
-import os , PyPDF2
+import os, PyPDF2
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'start of, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
 
 
 def getTest(user_id):
@@ -20,37 +19,64 @@ def getTest(user_id):
     open("Recived_test.pdf", 'wb').write(response.content)
 
 
-def sendSolvedTest(name,id):
-    test_fd = open("hw4.pdf","rb")
+def sendSolvedTest(name,ID):
+    test_fd = open("hw4.pdf", "rb")
     test_size = os.path.getsize("hw4.pdf")
     test = test_fd.read(test_size)
 
     # shift it to base 64
+    encoded_bytes = base64.b64encode(str(test).encode("utf-8"))
+    encoded_test = str(encoded_bytes, "utf-8")
+
+
     sent_time = datetime.datetime.now()
     print(sent_time)
     headers = {"name": name,
-               "ID"  : str(id),
+               "ID": str(ID),
                "time": str(sent_time),
-               "file": str(test)
+               "file": encoded_test
                }
-    #print(headers)
+    # print(headers)
     url = "http://ec2-52-207-31-119.compute-1.amazonaws.com/get_solved_test"
-    response = requests.post(url,json=headers)
+    response = requests.post(url, json=headers)
 
     print(response.text)
     return
     sendSolvedTest()
 
 
+def userLogin():
+    usr_details_fd = open("user_details.txt","r")
 
-def makePremission():
-    makePremission()
+    ## reading user details
+    name     = usr_details_fd.readline()
+    ID       = usr_details_fd.readline()
+    password = usr_details_fd.readline()
 
+    sent_time = datetime.datetime.now()
+    print(name + ID + password)
+    headers = {"name": str(name),
+               "ID": str(ID),
+               "password": str(password),
+               "time": str(sent_time)}
 
+    url = "http://ec2-52-207-31-119.compute-1.amazonaws.com/student_login"
+    response = requests.post(url, json=headers)
+    server_response  = response.json()
+    if (server_response['permission'] == "student") :
+        user_permission_fd = open("user_permission",'w')
+        user_permission_fd.write(server_response['unique_id'])
+        user_permission_fd.close()
+        return("student permission aproved")
+    else :
+        print(response.text)
+        return ("student permission denied")
+    print(response.text)
+    userLogin()
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('Test Manger app')
-    sendSolvedTest("Melisha",555)
-
+    userLogin()
+    sendSolvedTest("Melisha", 555)
