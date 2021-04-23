@@ -2,7 +2,8 @@ import requests
 import datetime
 import base64
 import json
-import os, PyPDF2
+import os
+#import PyPDF2
 
 
 def print_hi(name):
@@ -49,9 +50,9 @@ def userLogin():
     usr_details_fd = open("user_details.txt","r")
 
     ## reading user details
-    name     = usr_details_fd.readline()
-    ID       = usr_details_fd.readline()
-    password = usr_details_fd.readline()
+    name     = usr_details_fd.readline().replace("\n","")
+    ID       = usr_details_fd.readline().replace("\n","")
+    password = usr_details_fd.readline().replace("\n","")
 
     sent_time = datetime.datetime.now()
     print(name + ID + password)
@@ -62,16 +63,18 @@ def userLogin():
 
     url = "http://ec2-52-207-31-119.compute-1.amazonaws.com/student_login"
     response = requests.post(url, json=headers)
-    server_response  = response.json()
-    if (server_response['permission'] == "student") :
-        user_permission_fd = open("user_permission",'w')
-        user_permission_fd.write(server_response['unique_id'])
+    print(response.text)
+    if (response.text == "AUTHENTICATION FAILED") :
+        return
+    server_response = response.json()
+    if (server_response['permission'] == "Approved") :
+        user_permission_fd = open("user_permission",'w')#        user_permission_fd.write(server_response['unique_id'])
         user_permission_fd.close()
+        print(response.json())
         return("student permission aproved")
     else :
-        print(response.text)
+        print("student permission denied")
         return ("student permission denied")
-    print(response.text)
     userLogin()
 
 
@@ -79,4 +82,5 @@ def userLogin():
 if __name__ == '__main__':
     print_hi('Test Manger app')
     userLogin()
-    sendSolvedTest("Melisha", 555)
+    #sendSolvedTest("Melisha", 555)
+
