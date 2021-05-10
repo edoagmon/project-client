@@ -3,8 +3,9 @@ import datetime
 import base64
 import json
 import os
-#import PyPDF2
+import psutil
 
+from subprocess import Popen, PIPE
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -59,18 +60,23 @@ def userLogin():
     headers = {"name": str(name),
                "ID": str(ID),
                "password": str(password),
-               "time": str(sent_time)}
+               "time":  str(sent_time)}
 
     url = "http://ec2-52-207-31-119.compute-1.amazonaws.com/student_login"
     response = requests.post(url, json=headers)
-    print(response.text)
+    print(response.text) #debug
     if (response.text == "AUTHENTICATION FAILED") :
         return
     server_response = response.json()
+    #server_response = {'unique_id': "unique_id",'permission':"Approved"} --debug
+
     if (server_response['permission'] == "Approved") :
-        user_permission_fd = open("user_permission",'w')#        user_permission_fd.write(server_response['unique_id'])
+        user_permission_fd = open("user_permission",'w')
+        student_uniqu_id  = server_response['unique_id']
+        print("unique ID is : " + student_uniqu_id)
+        user_permission_fd.write(student_uniqu_id + "\n")
         user_permission_fd.close()
-        print(response.json())
+        #print(response.json())
         return("student permission aproved")
     else :
         print("student permission denied")
@@ -78,9 +84,22 @@ def userLogin():
     userLogin()
 
 
+def pingToServer():
+
+    for connection in (psutil.net_connections()):
+        if(connection[4]):
+            print(str(connection[4])
+            #print(str(connection[5]) + " ")
+            #print(str(connection[6]) + "\n")
+
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('Test Manger app')
-    userLogin()
+    pingToServer()
+
+
+    #userLogin()
     #sendSolvedTest("Melisha", 555)
 
