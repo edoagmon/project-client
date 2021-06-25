@@ -44,7 +44,7 @@ def sendSolvedTest(name,ID):
 
     print(response.text)
     return
-    sendSolvedTest()
+
 
 
 def userLogin():
@@ -66,13 +66,14 @@ def userLogin():
     response = requests.post(url, json=headers)
     print(response.text) #debug
     if (response.text == "AUTHENTICATION FAILED") :
+        print("AUTHENTICATION FAILED")
         return
     server_response = response.json()
     #server_response = {'unique_id': "unique_id",'permission':"Approved"} --debug
 
     if (server_response['permission'] == "Approved") :
         user_permission_fd = open("user_permission",'w')
-        student_uniqu_id  = server_response['unique_id']
+        student_uniqu_id   = server_response['unique_id']
         print("unique ID is : " + student_uniqu_id)
         user_permission_fd.write(student_uniqu_id + "\n")
         user_permission_fd.close()
@@ -81,25 +82,38 @@ def userLogin():
     else :
         print("student permission denied")
         return ("student permission denied")
-    userLogin()
+
 
 
 def pingToServer():
+    tcp_connection = psutil.net_connections()
+    url = "" #TBD
+    ping_tcp_connection = ""
+    counter = 0
+    for connection in (tcp_connection):
+        laddr = str(connection[3])[str(connection[3]).find("=")+ 2:str(connection[3]).find(",") - 1]
+        raddr = str(connection[4])[str(connection[4]).find("=")+2:str(connection[4]).find(",")-1]
+        if (connection[4] == () or laddr.__eq__(raddr) or connection[5] != "ESTABLISHED"):
+            continue # passes not relevant connections
+        line_append = str({"laddr": laddr, "raddr": raddr, "status": str(connection[5])})
+        counter = counter + 1
+        ping_tcp_connection = ping_tcp_connection + line_append
+    print(ping_tcp_connection)
+    print(counter)
 
-    for connection in (psutil.net_connections()):
-        if(connection[4]):
-            print(str(connection[4])
-            #print(str(connection[5]) + " ")
-            #print(str(connection[6]) + "\n")
+    #response = requests.post(url, json=ping_tcp_connection)
+
+
+
 
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('Test Manger app')
+    #pingToServer()
+
     pingToServer()
-
-
     #userLogin()
     #sendSolvedTest("Melisha", 555)
 
