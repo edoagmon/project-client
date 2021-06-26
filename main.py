@@ -6,6 +6,10 @@ import os
 import psutil
 
 from subprocess import Popen, PIPE
+"""
+global variable section
+"""
+user_unique_id = 0
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -13,7 +17,7 @@ def print_hi(name):
 
 
 def getTest(user_id):
-    url = "http://ec2-52-207-31-119.compute-1.amazonaws.com/send_test"
+    url = "http://ec2-52-207-31-119.compute-1.amazonaws.com/send_test" ## TBD
     response = requests.post(url,
                              data={'sender': {str(user_id)},
                                    'message': "Test request"})
@@ -36,6 +40,7 @@ def sendSolvedTest(name,ID):
     headers = {"name": name,
                "ID": str(ID),
                "time": str(sent_time),
+               "user_unique_id":str(user_unique_id),
                "file": encoded_test
                }
     # print(headers)
@@ -67,42 +72,43 @@ def userLogin():
     print(response.text) #debug
     if (response.text == "AUTHENTICATION FAILED") :
         print("AUTHENTICATION FAILED")
-        return
+        return 1
     server_response = response.json()
     #server_response = {'unique_id': "unique_id",'permission':"Approved"} --debug
 
     if (server_response['permission'] == "Approved") :
         user_permission_fd = open("user_permission",'w')
         student_uniqu_id   = server_response['unique_id']
+        user_unique_id     = server_response['unique_id']
         print("unique ID is : " + student_uniqu_id)
         user_permission_fd.write(student_uniqu_id + "\n")
         user_permission_fd.close()
         #print(response.json())
-        return("student permission aproved")
-    else :
+        #return("student permission aproved")
+        return 0
+    else:
         print("student permission denied")
-        return ("student permission denied")
+        return (1)
 
 
 
 def pingToServer():
     tcp_connection = psutil.net_connections()
     url = "" #TBD
-    ping_tcp_connection = ""
+    ping_tcp_connection = str({"user_unique_id":user_unique_id})
     counter = 0
     for connection in (tcp_connection):
         laddr = str(connection[3])[str(connection[3]).find("=")+ 2:str(connection[3]).find(",") - 1]
         raddr = str(connection[4])[str(connection[4]).find("=")+2:str(connection[4]).find(",")-1]
         if (connection[4] == () or laddr.__eq__(raddr) or connection[5] != "ESTABLISHED"):
             continue # passes not relevant connections
-        line_append = str({"laddr": laddr, "raddr": raddr, "status": str(connection[5])})
+        line_append = str({"laddr": laddr, "raddr": raddr, "status": str(connection[5])}) ## TBD status is need ?
         counter = counter + 1
         ping_tcp_connection = ping_tcp_connection + line_append
     print(ping_tcp_connection)
     print(counter)
 
     #response = requests.post(url, json=ping_tcp_connection)
-
 
 
 
